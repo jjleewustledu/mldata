@@ -1,4 +1,4 @@
-classdef ITimingData 
+classdef (Abstract) ITimingData 
 	%% ITIMINGDATA  
 
 	%  $Revision$
@@ -10,21 +10,22 @@ classdef ITimingData
  	
 
 	properties (Abstract)
-        datetime0
-        dt
-        time0
-        timeF
-        timeDuration 
-        times
-        timeMidpoints % length() <= length(times)
-        taus          % length() <= length(times)
+        times         % frame starts
+        timeMidpoints % frame middle times, length() == length(times)  
+        taus          % frame durations,    length() == length(times)    
+        time0         % selects time window; >= this.time(1)                
+        timeF         % selects time window; <= this.times(end)
+        index0        % index of time0
+        indexF        % index of timeF
+        timeDuration  % timeF - time0     
+        datetime0     % measured datetime of this.time(1)
+        dt            % for timeInterpolants; <= min(taus)/2   
  	end
 
     methods (Abstract)
         length(this)
         timeInterpolants(this)
         timeMidpointInterpolants(this)
-        tauInterpolants(this)
     end
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
