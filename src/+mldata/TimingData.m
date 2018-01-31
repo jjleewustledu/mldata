@@ -11,6 +11,10 @@ classdef TimingData < mldata.ITimingData
 
     properties (Constant)
         PREFERRED_TIMEZONE = 'America/Chicago'
+        SERIAL_DAYS_1900_TO_1904 = 1462
+        EXCEL_INITIAL_DATETIME = datetime(1899,12,31)
+        
+        % https://support.microsoft.com/en-us/help/214330/differences-between-the-1900-and-the-1904-date-system-in-excel
     end
     
 	properties (Dependent) 
@@ -26,6 +30,18 @@ classdef TimingData < mldata.ITimingData
         dt            % for timeInterpolants; <= min(taus)/2     
     end
     
+    methods (Static)
+        function dati = datetimeConvertFromExcel(days)
+            assert(isnumeric(days));
+            dati = datetime(days + mldata.TimingData.SERIAL_DAYS_1900_TO_1904, 'ConvertFrom', 'excel');
+        end
+        function dati = datetimeConvertFromExcel2(days)
+            % addresses what may be an artefact of linking cells across sheets in Numbers/Excel on MacOS
+            assert(isnumeric(days));
+            dati = datetime(days + 2*mldata.TimingData.SERIAL_DAYS_1900_TO_1904, 'ConvertFrom', 'excel');
+        end
+    end
+    
     methods 
         
         %% GET, SET
@@ -33,10 +49,24 @@ classdef TimingData < mldata.ITimingData
         function g    = get.times(this)
             g = this.times_;
         end
+        function this = set.times(this, s)
+            if (isdatetime(s))
+                s = this.datetime2sec(s);
+            end
+            if (isduration(s))
+                s = seconds(s);
+            end
+            assert(isnumeric(s));
+            this.times_ = s;
+        end
         function g    = get.taus(this)
             if (~isempty(this.taus_))
                 g = this.taus_;
                 assert(length(g) == length(this.times))
+                return
+            end
+            if (length(this.times_) < 2)
+                g = nan;
                 return
             end
             g = this.times_(2:end) - this.times_(1:end-1);
@@ -58,6 +88,12 @@ classdef TimingData < mldata.ITimingData
             g = this.times(1);
         end
         function this = set.time0(this, s)
+            if (isdatetime(s))
+                s = this.datetime2sec(s);
+            end
+            if (isduration(s))
+                s = seconds(s);
+            end
             assert(isnumeric(s));
             this.time0_ = s;
         end
@@ -69,6 +105,12 @@ classdef TimingData < mldata.ITimingData
             g = this.times(end);
         end
         function this = set.timeF(this, s)
+            if (isdatetime(s))
+                s = this.datetime2sec(s);
+            end
+            if (isduration(s))
+                s = seconds(s);
+            end
             assert(isnumeric(s));
             this.timeF_ = s;
         end        
@@ -87,29 +129,41 @@ classdef TimingData < mldata.ITimingData
         function g    = get.timeDuration(this)
             g = this.timeF - this.time0;
         end
+        function this = set.timeDuration(this, s)
+            this.timeF = this.time0 + s;
+        end
         function g    = get.datetime0(this)
             g = this.datetime0_;
+        end
+        function this = set.datetime0(this, s)
+            assert(isdatetime(s));
+            this.datetime0_ = s;
         end
         function g    = get.dt(this)
             g = this.dt_;
         end
         function this = set.dt(this, s)
             assert(isnumeric(s));
-            assert(s <= min(this.taus)/2);
+            %assert(s <= min(this.taus)/2);
             this.dt_ = s;
         end
         
         %%        
         
-        function s    = datetime2sec(this, dt)
-            dt.TimeZone = this.PREFERRED_TIMEZONE;
-            s = seconds(dt - this.datetime0);
+        function s    = datetime2sec(this, dt_)
+            assert(isdatetime(dt_));
+            dt_.TimeZone = this.PREFERRED_TIMEZONE;
+            s = seconds(dt_ - this.datetime0);
+            if (isduration(s))
+                s = seconds(s);
+            end
+            assert(isnumeric(s));
         end
         function dt   = sec2datetime(this, s)
             dt = this.datetime0 + duration(0,0,s);
         end
-        function this = shiftTimes(this, Dt)
-            this.times_ = this.times_ + Dt;
+        function this = shiftTimes(this, Dt_)
+            this.times_ = this.times_ + Dt_;
         end
 
         function len      = length(this)
@@ -125,7 +179,7 @@ classdef TimingData < mldata.ITimingData
                 return
             end
             
-            t = this.times(1):this.dt:this.times;
+            t = this.times(1):this.dt:this.times(end);
             this.timeInterpolants_ = t;
             if (~isempty(varargin))
                 t = t(varargin{:}); 
@@ -141,7 +195,7 @@ classdef TimingData < mldata.ITimingData
                 return
             end
             
-            t = this.times(1)+this.taus(1)/2:this.dt:this.times+this.taus(end)/2;
+            t = this.times(1)+this.taus(1)/2:this.dt:this.times(end)+this.taus(end)/2;
             this.timeMidpointInterpolants_ = t;
             if (~isempty(varargin))
                 t = t(varargin{:}); 
@@ -164,7 +218,7 @@ classdef TimingData < mldata.ITimingData
             addParameter(ip, 'timeMidpoints', [], @isnumeric);
             addParameter(ip, 'time0', -inf, @isnumeric); % time0 > times(1) drops early times
             addParameter(ip, 'timeF', inf, @isnumeric);  % timeF < times(end) drops late times
-            addParameter(ip, 'datetime0', NaT, @(x) isa(x, 'datetime') && strcmp(x.TimeZone,this.PREFERRED_TIMEZONE));
+            addParameter(ip, 'datetime0', NaT, @(x) isdatetime(x) && strcmp(x.TimeZone,this.PREFERRED_TIMEZONE));
             addParameter(ip, 'dt', 1, @isnumeric);
             parse(ip, varargin{:});
             
@@ -175,7 +229,7 @@ classdef TimingData < mldata.ITimingData
             this.timeF_             = min(ip.Results.timeF, this.times_(end));
             this.datetime0_         = ip.Results.datetime0;
             this.dt_                = ip.Results.dt;            
-            assert(this.dt_ <= min(this.taus)); % alert to external problems with Nyquist sampling
+            %assert(this.dt_ <= min(this.taus)); % alert to external problems with Nyquist sampling
         end     
     end 
     
