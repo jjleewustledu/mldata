@@ -58,6 +58,8 @@ classdef TimingData < mldata.ITimingData
             end
             assert(isnumeric(s));
             this.times_ = s;
+            this.time0_ = this.times_(1);
+            this.timeF_ = this.times_(end);
         end
         function g    = get.taus(this)
             if (~isempty(this.taus_))
