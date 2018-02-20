@@ -15,15 +15,15 @@ classdef (Abstract) ITimingData
         taus          % frame durations,    length() == length(times)    
         time0         % selects time window; >= this.time(1)                
         timeF         % selects time window; <= this.times(end)
-        index0        % index of time0
-        indexF        % index of timeF
         timeDuration  % timeF - time0     
         datetime0     % measured datetime of this.time(1)
         dt            % for timeInterpolants; <= min(taus)/2   
+        index0        % index of time0
+        indexF        % index of timeF
  	end
 
     methods (Abstract)
-        length(this)
+        %length(this)
         timeInterpolants(this)
         timeMidpointInterpolants(this)
     end
