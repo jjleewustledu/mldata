@@ -102,11 +102,11 @@ classdef Test_TimingData < matlab.unittest.TestCase
             this.verifyEqual(this.testObj.datetime0, this.datetime0);
             % set
             this.testObj.datetime0 = this.datetime0 + seconds(1);
-            this.verifyEqual(this.testObj.index0, 2);
-            this.verifyEqual(this.testObj.time0, 101);
+            this.verifyEqual(this.testObj.index0, 1);
+            this.verifyEqual(this.testObj.time0, 100);
             this.verifyEqual(this.testObj.datetime0, this.datetime0 + seconds(1));
-            this.verifyEqual(this.testObj.timeDuration, 98);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,98));
+            this.verifyEqual(this.testObj.timeDuration, 99);
+            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,99));
         end
         function test_datetimeF(this)
             % get

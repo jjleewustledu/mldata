@@ -134,7 +134,6 @@ classdef TimingData < mldata.ITimingData
             if (isempty(this.datetime0_.TimeZone))
                 this.datetime0_.TimeZone = this.PREFERRED_TIMEZONE;
             end
-            this.time0_ = double(seconds(s - this.datetime0_)) + this.times(1);
             this.datetime0_ = s;
         end
         function g    = get.datetimeF(this)
@@ -254,7 +253,7 @@ classdef TimingData < mldata.ITimingData
                 this.dt_ = ip.Results.dt;                
             end
             
-            if (isdatetime(this.times_))
+            if (isdatetime(this.times_) && ~all(isnat(this.times_)))
                 this.datetime0_  = this.times_(1);
                 this.times_      = double(seconds(this.times_ - this.times_(1)));
             end
