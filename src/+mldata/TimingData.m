@@ -25,11 +25,12 @@ classdef TimingData < mldata.ITimingData
         timeF            % selects time window; <= this.times(end)
         timeDuration     % timeF - time0   
         datetime0        % datetime of this.time0
-        datetimeF        % datetime of this.timeF
-        datetimeDuration % datetimeF - datetime0
         index0           % index() >= index(time0)
         indexF           % index() >= index(timeF)  
-        dt               % for timeInterpolants; seconds
+        dt               % for timeInterpolants; seconds        
+        
+        datetimeF        % datetime of this.timeF
+        datetimeDuration % datetimeF - datetime0
     end
     
     methods (Static)
@@ -72,6 +73,11 @@ classdef TimingData < mldata.ITimingData
             g = this.times_(2:end) - this.times_(1:end-1);
             g = [g g(end)];
         end  
+        function this = set.taus(this, s)
+            assert(isnumeric(s));
+            assert(length(s) == length(this.times));
+            this.taus_ = s;
+        end
         function g    = get.timeMidpoints(this)
             if (~isempty(this.timeMidpoints_))
                 g = this.timeMidpoints_;

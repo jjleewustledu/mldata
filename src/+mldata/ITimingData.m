@@ -11,19 +11,24 @@ classdef (Abstract) ITimingData
 
 	properties (Abstract)
         times         % frame starts
-        timeMidpoints % frame middle times, length() == length(times)  
-        taus          % frame durations,    length() == length(times)    
+        taus          % frame durations,    length() == length(times)  
+        timeMidpoints % frame middle times, length() == length(times)    
         time0         % selects time window; >= this.time(1)                
         timeF         % selects time window; <= this.times(end)
         timeDuration  % timeF - time0     
         datetime0     % measured datetime of this.time(1)
-        dt            % for timeInterpolants; <= min(taus)/2   
         index0        % index of time0
         indexF        % index of timeF
+        dt            % for timeInterpolants; <= min(taus)/2  
+        
+        %datetimeF        % datetime of this.timeF
+        %datetimeDuration % datetimeF - datetime0
  	end
 
     methods (Abstract)
+        %datetime(this)
         %length(this)
+        %shiftTimes
         timeInterpolants(this)
         timeMidpointInterpolants(this)
     end
