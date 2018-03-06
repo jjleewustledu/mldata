@@ -97,7 +97,6 @@ classdef TimingData < mldata.ITimingData
             assert(isnumeric(s));
             assert(s >= this.times(1));
             this.time0_ = s;
-            this.datetime0_ = this.datetime0_ + seconds(s - this.times(1));
         end
         function g    = get.timeF(this)
             if (~isempty(this.timeF_))
@@ -130,7 +129,7 @@ classdef TimingData < mldata.ITimingData
             this.timeF = this.time0 + double(s);
         end
         function g    = get.datetime0(this)
-            g = this.datetime0_;
+            g = this.datetime0_ + seconds(this.time0 - this.times(1));
         end
         function this = set.datetime0(this, s)
             assert(isdatetime(s));
