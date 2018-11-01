@@ -11,12 +11,66 @@ classdef Test_TimingData < matlab.unittest.TestCase
  	%% It was developed on Matlab 9.2.0.538062 (R2017a) for MACI64.  Copyright 2017 John Joowon Lee.
  	
 	properties
-        datetime0 = datetime('1-Jan-2017 09:00:00', 'TimeZone', 'America/Chicago')
+        datetime0 = datetime(2017,1,1,9,0,0,0.0, 'TimeZone', 'America/Chicago')
  		registry
  		testObj
- 	end
-
+    end
+    
 	methods (Test)
+        function test_ctor_taus(this)
+ 			obj = mldata.TimingData( ...
+                'taus', [1 1 2 4 4], ...
+                'datetime0', this.datetime0);
+            this.verifyCtorVariations(obj);
+            
+ 			obj = mldata.TimingData( ...
+                'taus', seconds([1 1 2 4 4]), ...
+                'datetime0', this.datetime0);
+            this.verifyCtorVariations(obj);
+        end
+        function test_ctor_times(this)
+ 			obj = mldata.TimingData( ...
+                'times', [0 1 2 4 8], ...
+                'datetime0', this.datetime0);
+            this.verifyCtorVariations(obj);
+            
+ 			obj = mldata.TimingData( ...
+                'times', this.datetime0 + seconds([0 1 2 4 8]), ...
+                'datetime0', this.datetime0);
+            this.verifyCtorVariations(obj);
+        end
+        function test_ctor_timesMid(this)
+ 			obj = mldata.TimingData( ...
+                'times', [0 1 2 4 8], ...
+                'timesMid', [0.1 1.1 2.1 4.1 8.1], ...
+                'datetime0', this.datetime0);
+            this.verifyEqual(obj.taus, [1 1 2 4 4]);
+            this.verifyEqual(obj.times, [0 1 2 4 8]);
+            this.verifyEqual(obj.timesMid, [0.1 1.1 2.1 4.1 8.1]);
+            this.verifyEqual(obj.timeInterpolants, 0:0.5:8);
+            this.verifyEqual(obj.timeMidInterpolants, 0.5:0.5:10);
+            
+ 			obj = mldata.TimingData( ...
+                'times', [0 1 2 4 8], ...
+                'timesMid', this.datetime0 + milliseconds(1e3 * [0.6 1.6 2.6 4.6 8.6]), ...
+                'datetime0', this.datetime0);
+            this.verifyEqual(obj.taus, [1 1 2 4 4]);
+            this.verifyEqual(obj.times, [0 1 2 4 8]);
+            this.verifyEqual(obj.timesMid, [0 1 2 4 8]); % truncation
+            this.verifyEqual(obj.timeInterpolants, 0:0.5:8);
+            this.verifyEqual(obj.timeMidInterpolants, 0.5:0.5:10);
+        end
+        function test_ctor_duration(this)
+        end
+        function test_ctor_datetime(this)
+        end
+        function test_taus(this)
+            % get
+            this.verifyEqual(this.testObj.taus, ones(1,100));
+            % set
+            this.testObj.taus = 0.01:0.01:1;
+            this.verifyEqual(this.testObj.taus, 0.01:0.01:1);
+        end
         function test_times(this)
             % get
             this.verifyEqual(this.testObj.times, 100:199);
@@ -24,19 +78,12 @@ classdef Test_TimingData < matlab.unittest.TestCase
             this.testObj.times = 0:99;
             this.verifyEqual(this.testObj.times, 0:99);
         end
-        function test_timeMidpoints(this)
+        function test_timesMid(this)
             % get
-            this.verifyEqual(this.testObj.timeMidpoints, 100.5:1:199.5);
+            this.verifyEqual(this.testObj.timesMid, 100.5:1:199.5);
             % set
-            %this.testObj.timeMidpoints = 0.5:1:99.5;            
-            %this.verifyEqual(this.testObj.timeMidpoints, 0.5:1:99.5);
-        end
-        function test_taus(this)
-            % get
-            this.verifyEqual(this.testObj.taus, ones(1,100));
-            % set
-            %this.testObj.taus = 0.01:0.01:1;
-            %this.verifyEqual(this.testObj.taus, 0.01:0.01:1);
+            this.testObj.timesMid = 0.5:1:99.5;            
+            this.verifyEqual(this.testObj.timesMid, 0.5:1:99.5);
         end
         function test_time0(this)
             % get
@@ -181,43 +228,43 @@ classdef Test_TimingData < matlab.unittest.TestCase
             this.verifyEqual(this.testObj.timeInterpolants, 100:0.25:199);
         end
         function test_timeMidpointInterpolants(this)
-            this.verifyEqual(this.testObj.timeMidpointInterpolants, 100.5:0.5:199.5);
+            this.verifyEqual(this.testObj.timeMidInterpolants, 100.5:0.5:199.5);
             this.testObj.dt = 0.25;
-            this.verifyEqual(this.testObj.timeMidpointInterpolants, 100.5:0.25:199.5);
+            this.verifyEqual(this.testObj.timeMidInterpolants, 100.5:0.25:199.5);
         end
     end
 
  	methods (TestClassSetup)
 		function setupTimingData(this)
- 			import mldata.*;
- 			this.testObj_ = TimingData( ...
-                'times', 100:199, ...
-                'dt', 0.5, ...
-                'datetime0', this.datetime0);
  		end
 	end
 
  	methods (TestMethodSetup)
 		function setupTimingDataTest(this)
- 			this.testObj = this.testObj_;
+ 			this.testObj = mldata.TimingData( ...
+                'times', 100:199, ...
+                'datetime0', this.datetime0);
  			this.addTeardown(@this.cleanFiles);
  		end
 	end
+    
+    %% PRIVATE
 
 	properties (Access = private)
- 		testObj_
  	end
 
 	methods (Access = private)
-		function cleanFiles(this)
- 		end
-    end
-    
-    %% PRIVATE
-    
-    methods (Access = private)        
         function assignLargeTimeDuration(this)
             this.testObj.timeDuration = 100;
+        end
+		function cleanFiles(this)
+ 		end
+        function verifyCtorVariations(this, obj)            
+            this.verifyEqual(obj.taus, [1 1 2 4 4]);
+            this.verifyEqual(obj.times, [0 1 2 4 8]);
+            this.verifyEqual(obj.timesMid, [0.5 1.5 3 6 10]);
+            this.verifyEqual(obj.timeInterpolants, 0:0.5:8);
+            this.verifyEqual(obj.timeMidInterpolants, 0.5:0.5:10);
         end
     end
 
