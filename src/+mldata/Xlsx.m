@@ -9,7 +9,8 @@ classdef (Abstract) Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
 	properties (Constant) 		
         EXCEL_INITIAL_DATETIME = datetime(1899,12,31)
         PREFERRED_TIMEZONE = mlkinetics.Timing.PREFERRED_TIMEZONE
-        SERIAL_DAYS_1900_TO_1904 = 1462	
+        SERIAL_DAYS_1900_TO_1904 = 1462	        
+        % https://support.microsoft.com/en-us/help/214330/differences-between-the-1900-and-the-1904-date-system-in-excel
  	end
 
     %% PROTECTED
