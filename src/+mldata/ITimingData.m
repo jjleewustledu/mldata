@@ -12,7 +12,7 @@ classdef (Abstract) ITimingData
 	properties (Abstract)
         times         % frame starts
         taus          % frame durations,    length() == length(times)  
-        timeMidpoints % frame middle times, length() == length(times)    
+        timesMid      % frame middle times, length() == length(times)    
         time0         % selects time window; >= this.time(1)                
         timeF         % selects time window; <= this.times(end)
         timeDuration  % timeF - time0     
@@ -30,7 +30,7 @@ classdef (Abstract) ITimingData
         %length(this)
         %shiftTimes
         timeInterpolants(this)
-        timeMidpointInterpolants(this)
+        timeMidInterpolants(this)
     end
 
 	%  Created with Newcl by John J. Lee after newfcn by Frank Gonzalez-Morphy
