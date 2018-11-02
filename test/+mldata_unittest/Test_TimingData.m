@@ -28,17 +28,6 @@ classdef Test_TimingData < matlab.unittest.TestCase
             dt = datetime(2017,1,1,9,0,1,123, 'TimeZone', 'America/Chicago');        
             this.assertEqual(this.testObj.timing2num(dt), 1.123);            
         end
-        function test_ctor_taus(this)
- 			obj = mldata.TimingData( ...
-                'taus', [1 1 2 4 4], ...
-                'datetime0', this.datetimeMeas);
-            this.verifyCtorVariations(obj);
-            
- 			obj = mldata.TimingData( ...
-                'taus', seconds([1 1 2 4 4]), ...
-                'datetime0', this.datetimeMeas);
-            this.verifyCtorVariations(obj);
-        end
         function test_ctor_times(this)
  			obj = mldata.TimingData( ...
                 'times', [0 1 2 4 8], ...
@@ -179,11 +168,11 @@ classdef Test_TimingData < matlab.unittest.TestCase
             this.verifyEqual(this.testObj.datetime0, this.datetimeMeas);
             % set
             this.testObj.datetime0 = this.datetimeMeas + seconds(1);
-            this.verifyEqual(this.testObj.index0, 1);
-            this.verifyEqual(this.testObj.time0, 100);
+            this.verifyEqual(this.testObj.index0, 2);
+            this.verifyEqual(this.testObj.time0, 101);
             this.verifyEqual(this.testObj.datetime0, this.datetimeMeas + seconds(1));
-            this.verifyEqual(this.testObj.timeDuration, 99);
-            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,99));
+            this.verifyEqual(this.testObj.timeDuration, 98);
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,98));
         end
         function test_datetimeF(this)
             % get

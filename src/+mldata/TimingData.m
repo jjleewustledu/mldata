@@ -8,6 +8,7 @@ classdef TimingData < handle
     %  function dt_ = datetime(this)
     %      dt_ = this.datetime0 + seconds(this.times(this.index0:this.indexF) - this.time0); 
     %  end
+    %
     % function set.datetime0(this, s)
     %     assert(this.isnice(s));
     %     assert(isdatetime(s));
@@ -80,8 +81,8 @@ classdef TimingData < handle
                 g = this.taus_;
                 return
             end
-            if (~isempty(this.times_))
-                g = diff(this.times_);
+            if (~isempty(this.times))
+                g = diff(this.times);
                 g = [g g(end)];
                 this.taus_ = g;
                 return
@@ -95,24 +96,15 @@ classdef TimingData < handle
             this.taus_ = s;
         end
         function g    = get.times(this)
-            if (~isempty(this.times_)) % use cache
-                g = this.times_;
-                return
-            end
-            if (~isempty(this.taus_))
-                g = cumsum([0 this.taus_(1:end-1)]);
-                this.times_ = g;
-                return
-            end
-            g = [];
+            g = this.timing_.times;
         end
         function        set.times(this, s)
-            assert(this.isniceDat(s));
-            s = ensureRowVector(s);
-            if (isdatetime(s)); s = this.timing2num(s - s(1)); end
-            this.times_ = s;
+            this.timing_.times = s;
         end
         function g    = get.time0(this)
+            g = this.timing_.time0;
+            return
+            
             if (~isempty(this.time0_))
                 g = this.time0_;
                 return
@@ -121,6 +113,9 @@ classdef TimingData < handle
             this.time0_ = g;
         end
         function        set.time0(this, s)
+            this.timing_.time0 = s;
+            return
+            
             assert(this.isniceScalNum(s));
             assert(s >= this.times(1));
             this.time0_ = s;
@@ -174,9 +169,15 @@ classdef TimingData < handle
             g = this.times(1)+this.taus(1)/2:this.dt:this.times(end)+this.taus(end)/2;
         end
         function g    = get.index0(this)
+            g = this.timing_.index0;
+            return
+            
             [~,g] = max(this.times >= this.time0);
         end
         function        set.index0(this, s)
+            this.timing_.index0 = s;
+            return
+            
             assert(this.isniceScalNum(s));
             this.time0 = this.times(s);
         end
@@ -188,9 +189,15 @@ classdef TimingData < handle
             this.timeF = this.times(s);
         end
         function g    = get.datetime0(this)
+            g = this.timing_.datetime0;
+            return
+            
             g = this.timing_.datetime0 + seconds(this.time0 - this.times(1));
         end
         function        set.datetime0(this, s)
+            this.timing_.datetime0 = s;
+            return
+            
             assert(this.isnice(s));
             assert(isdatetime(s));
             assert(isscalar(s));
@@ -235,7 +242,7 @@ classdef TimingData < handle
             dur_ = dat_ - dat_(1);
         end
         function this     = shiftTimes(this, Dt_)
-            this.times_ = this.times_ + Dt_;
+            this.times = this.times + Dt_;
         end
         function n        = timing2num(this, t)
             n = this.timing_.timing2num(t);
@@ -262,28 +269,25 @@ classdef TimingData < handle
             addParameter(ip, 'dt', 0, @isnumeric);
             parse(ip, varargin{:});
             this.taus_ = ensureRowVector(ip.Results.taus); 
-            this.times_ = ensureRowVector(ip.Results.times);  
             this.timesMid_ = ensureRowVector(ip.Results.timesMid);         
             if (isduration(this.taus_))
                 this.taus_ = this.seconds2num(this.taus_); 
             end
-            if (isdatetime(this.times_))
-                this.times_ = this.seconds2num(this.times_ - this.times_(1)); 
-            end
             if (isdatetime(this.timesMid_))
                 this.timesMid_ = this.seconds2num(this.timesMid_ - this.timesMid_(1)); 
             end 
-            assert(length(this.taus) == length(this.times));            
-            assert(length(this.times) == length(this.timesMid));
-            this.time0_ = max(ip.Results.time0, this.times(1));
-            this.timeF_ = min(ip.Results.timeF, this.times(end));
             
             this.timing_ = mlkinetics.Timing( ...
                 'datetimeMeasured', ip.Results.datetime0, ...
-                'times', this.times, ...
-                'time0', this.time0, ...
-                'timeF', this.timeF, ...
+                'times', ip.Results.times, ...
+                'time0', ip.Results.time0, ...
+                'timeF', ip.Results.timeF, ...
                 'dt', ip.Results.dt);
+            
+            assert(length(this.taus) == length(this.times));            
+            assert(length(this.times) == length(this.timesMid));
+            %this.time0_ = max(ip.Results.time0, this.times(1));
+            this.timeF_ = min(ip.Results.timeF, this.times(end));
         end 
     end 
     
@@ -291,12 +295,11 @@ classdef TimingData < handle
     
     properties (Access = protected)
         taus_
-        times_
         timeInterpolants_
         timesMid_
         timeMidInterpolants_
         
-        time0_
+        %time0_
         timeF_
         dt_        
         
