@@ -11,43 +11,55 @@ classdef Test_TimingData < matlab.unittest.TestCase
  	%% It was developed on Matlab 9.2.0.538062 (R2017a) for MACI64.  Copyright 2017 John Joowon Lee.
  	
 	properties
-        datetime0 = datetime(2017,1,1,9,0,0,0.0, 'TimeZone', 'America/Chicago')
+        datetimeMeas = datetime(2017,1,1,9,0,0,0.0, 'TimeZone', 'America/Chicago')
  		registry
  		testObj
     end
     
 	methods (Test)
-        function test_seconds2num(this)
+        function test_timing2num(this)
             % retains subseconds
-            this.assertEqual(this.testObj.seconds2num(seconds(1.123)), 1.123);
+            
+            this.assertEqual(this.testObj.timing2num(milliseconds(1123)), 1.123);
+            this.assertEqual(this.testObj.timing2num(seconds(1.123)), 1.123);
+            this.assertEqual(this.testObj.timing2num(minutes(1.123/60)), 1.123);
+            this.assertEqual(this.testObj.timing2num(hours(1.123/3600)), 1.123);
+            
+            dt = datetime(2017,1,1,9,0,1,123, 'TimeZone', 'America/Chicago');        
+            this.assertEqual(this.testObj.timing2num(dt), 1.123);            
         end
         function test_ctor_taus(this)
  			obj = mldata.TimingData( ...
                 'taus', [1 1 2 4 4], ...
-                'datetime0', this.datetime0);
+                'datetime0', this.datetimeMeas);
             this.verifyCtorVariations(obj);
             
  			obj = mldata.TimingData( ...
                 'taus', seconds([1 1 2 4 4]), ...
-                'datetime0', this.datetime0);
+                'datetime0', this.datetimeMeas);
             this.verifyCtorVariations(obj);
         end
         function test_ctor_times(this)
  			obj = mldata.TimingData( ...
                 'times', [0 1 2 4 8], ...
-                'datetime0', this.datetime0);
+                'datetime0', this.datetimeMeas);
             this.verifyCtorVariations(obj);
             
  			obj = mldata.TimingData( ...
-                'times', this.datetime0 + seconds([0 1 2 4 8]), ...
-                'datetime0', this.datetime0);
+                'times', [0.123 1.123 2.123 4.123 8.123], ...
+                'datetime0', this.datetimeMeas);
+            this.verifyEqual(obj.times, [0.123 1.123 2.123 4.123 8.123]);
+            
+ 			obj = mldata.TimingData( ...
+                'times', this.datetimeMeas + seconds([0 1 2 4 8]), ...
+                'datetime0', this.datetimeMeas);
             this.verifyCtorVariations(obj);
         end
         function test_ctor_timesMid(this)
  			obj = mldata.TimingData( ...
                 'times', [0 1 2 4 8], ...
                 'timesMid', [0.1 1.1 2.1 4.1 8.1], ...
-                'datetime0', this.datetime0);
+                'datetime0', this.datetimeMeas);
             this.verifyEqual(obj.taus, [1 1 2 4 4]);
             this.verifyEqual(obj.times, [0 1 2 4 8]);
             this.verifyEqual(obj.timesMid, [0.1 1.1 2.1 4.1 8.1]);
@@ -56,8 +68,8 @@ classdef Test_TimingData < matlab.unittest.TestCase
             
  			obj = mldata.TimingData( ...
                 'times', [0 1 2 4 8], ...
-                'timesMid', this.datetime0 + milliseconds(1e3 * [0.6 1.6 2.6 4.6 8.6]), ...
-                'datetime0', this.datetime0);
+                'timesMid', this.datetimeMeas + milliseconds(1e3 * [0.6 1.6 2.6 4.6 8.6]), ...
+                'datetime0', this.datetimeMeas);
             this.verifyEqual(obj.taus, [1 1 2 4 4]);
             this.verifyEqual(obj.times, [0 1 2 4 8]);
             this.verifyEqual(obj.timesMid, [0 1 2 4 8]); % truncation
@@ -96,23 +108,23 @@ classdef Test_TimingData < matlab.unittest.TestCase
             this.testObj.time0 = 101;
             this.verifyEqual(this.testObj.index0, 2);
             this.verifyEqual(this.testObj.time0, 101);
-            this.verifyEqual(this.testObj.datetime0, this.datetime0 + seconds(1));
+            this.verifyEqual(this.testObj.datetime0, this.datetimeMeas + seconds(1));
             this.verifyEqual(this.testObj.timeDuration, 98);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,98)); 
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,98)); 
             % set again
             this.testObj.time0 = 111;
             this.verifyEqual(this.testObj.index0, 12);
             this.verifyEqual(this.testObj.time0, 111);
-            this.verifyEqual(this.testObj.datetime0, this.datetime0 + seconds(11));
+            this.verifyEqual(this.testObj.datetime0, this.datetimeMeas + seconds(11));
             this.verifyEqual(this.testObj.timeDuration, 88);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,88)); 
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,88)); 
             % set again
             this.testObj.time0 = 100;
             this.verifyEqual(this.testObj.index0, 1);
             this.verifyEqual(this.testObj.time0, 100);
-            this.verifyEqual(this.testObj.datetime0, this.datetime0);
+            this.verifyEqual(this.testObj.datetime0, this.datetimeMeas);
             this.verifyEqual(this.testObj.timeDuration, 99);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,99)); 
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,99)); 
         end
         function test_timeF(this)
             % get
@@ -121,9 +133,9 @@ classdef Test_TimingData < matlab.unittest.TestCase
             this.testObj.timeF = 198;
             this.verifyEqual(this.testObj.indexF, 99);
             this.verifyEqual(this.testObj.timeF, 198);
-            this.verifyEqual(this.testObj.datetimeF, this.datetime0 + seconds(98));
+            this.verifyEqual(this.testObj.datetimeF, this.datetimeMeas + seconds(98));
             this.verifyEqual(this.testObj.timeDuration, 98);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,98)); 
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,98)); 
         end
 		function test_timeDuration(this)
             % get
@@ -132,68 +144,68 @@ classdef Test_TimingData < matlab.unittest.TestCase
             this.testObj.timeDuration = 50;
             this.verifyEqual(this.testObj.indexF, 51);
             this.verifyEqual(this.testObj.timeF, 150);
-            this.verifyEqual(this.testObj.datetimeF, this.datetime0 + seconds(50));
+            this.verifyEqual(this.testObj.datetimeF, this.datetimeMeas + seconds(50));
             this.verifyEqual(this.testObj.timeDuration, 50);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,50));
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,50));
         end
         function test_datetime(this)
             % get
             dt_ = this.testObj.datetime;
-            this.verifyEqual(dt_(1),   this.datetime0);
-            this.verifyEqual(dt_(end), this.datetime0 + seconds(99));
+            this.verifyEqual(dt_(1),   this.datetimeMeas);
+            this.verifyEqual(dt_(end), this.datetimeMeas + seconds(99));
         end
         function test_datetime1(this)
             this.testObj.index0 = 2;
-            dt_ = this.testObj.datetime; this.verifyEqual(dt_(1),   this.datetime0 + seconds(1));
+            dt_ = this.testObj.datetime; this.verifyEqual(dt_(1),   this.datetimeMeas + seconds(1));
         end
         function test_datetime2(this)
             this.testObj.time0 = 101;
-            dt_ = this.testObj.datetime; this.verifyEqual(dt_(1),   this.datetime0 + seconds(1));
+            dt_ = this.testObj.datetime; this.verifyEqual(dt_(1),   this.datetimeMeas + seconds(1));
         end
         function test_datetime3(this)
-            this.testObj.datetime0 = this.datetime0 + seconds(1);
-            dt_ = this.testObj.datetime; this.verifyEqual(dt_(1),   this.datetime0 + seconds(1));
+            this.testObj.datetime0 = this.datetimeMeas + seconds(1);
+            dt_ = this.testObj.datetime; this.verifyEqual(dt_(1),   this.datetimeMeas + seconds(1));
         end
         function test_datetime4(this)
             this.testObj.timeDuration = 98;
-            dt_ = this.testObj.datetime; this.verifyEqual(dt_(end), this.datetime0 + seconds(98));
+            dt_ = this.testObj.datetime; this.verifyEqual(dt_(end), this.datetimeMeas + seconds(98));
         end
         function test_datetime5(this)
-            this.testObj.datetimeDuration = seconds(98);
-            dt_ = this.testObj.datetime; this.verifyEqual(dt_(end), this.datetime0 + seconds(98));
+            this.testObj.datetimeWindow = seconds(98);
+            dt_ = this.testObj.datetime; this.verifyEqual(dt_(end), this.datetimeMeas + seconds(98));
         end
         function test_datetime0(this)
             % get
-            this.verifyEqual(this.testObj.datetime0, this.datetime0);
+            this.verifyEqual(this.testObj.datetime0, this.datetimeMeas);
             % set
-            this.testObj.datetime0 = this.datetime0 + seconds(1);
+            this.testObj.datetime0 = this.datetimeMeas + seconds(1);
             this.verifyEqual(this.testObj.index0, 1);
             this.verifyEqual(this.testObj.time0, 100);
-            this.verifyEqual(this.testObj.datetime0, this.datetime0 + seconds(1));
+            this.verifyEqual(this.testObj.datetime0, this.datetimeMeas + seconds(1));
             this.verifyEqual(this.testObj.timeDuration, 99);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,99));
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,99));
         end
         function test_datetimeF(this)
             % get
-            this.verifyEqual(this.testObj.datetimeF, this.datetime0 + seconds(99));
+            this.verifyEqual(this.testObj.datetimeF, this.datetimeMeas + seconds(99));
             % set
-            this.testObj.datetimeF = this.datetime0 + seconds(98);
+            this.testObj.datetimeF = this.datetimeMeas + seconds(98);
             this.verifyEqual(this.testObj.indexF, 99);
             this.verifyEqual(this.testObj.timeF, 198);
-            this.verifyEqual(this.testObj.datetimeF, this.datetime0 + seconds(98));
+            this.verifyEqual(this.testObj.datetimeF, this.datetimeMeas + seconds(98));
             this.verifyEqual(this.testObj.timeDuration, 98);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,98));
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,98));
         end
 		function test_datetimeDuration(this)
             % get
-            this.verifyEqual(this.testObj.datetimeDuration, seconds(99));         
+            this.verifyEqual(this.testObj.datetimeWindow, seconds(99));         
             % set
-            this.testObj.datetimeDuration = seconds(50);
+            this.testObj.datetimeWindow = seconds(50);
             this.verifyEqual(this.testObj.indexF, 51);
             this.verifyEqual(this.testObj.timeF, 150);
-            this.verifyEqual(this.testObj.datetimeF, this.datetime0 + seconds(50));
+            this.verifyEqual(this.testObj.datetimeF, this.datetimeMeas + seconds(50));
             this.verifyEqual(this.testObj.timeDuration, 50);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,50)); 
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,50)); 
         end
         function test_index0(this)
             % get            
@@ -202,9 +214,9 @@ classdef Test_TimingData < matlab.unittest.TestCase
             this.testObj.index0 = 51;
             this.verifyEqual(this.testObj.index0, 51);
             this.verifyEqual(this.testObj.time0, 150);
-            this.verifyEqual(this.testObj.datetime0, this.datetime0 + seconds(50));
+            this.verifyEqual(this.testObj.datetime0, this.datetimeMeas + seconds(50));
             this.verifyEqual(this.testObj.timeDuration, 49);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,49)); 
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,49)); 
         end
         function test_indexF(this)
             % get
@@ -213,9 +225,9 @@ classdef Test_TimingData < matlab.unittest.TestCase
             this.testObj.indexF = 51;
             this.verifyEqual(this.testObj.indexF, 51);
             this.verifyEqual(this.testObj.timeF, 150);
-            this.verifyEqual(this.testObj.datetimeF, this.datetime0 + seconds(50));
+            this.verifyEqual(this.testObj.datetimeF, this.datetimeMeas + seconds(50));
             this.verifyEqual(this.testObj.timeDuration, 50);
-            this.verifyEqual(this.testObj.datetimeDuration, duration(0,0,50)); 
+            this.verifyEqual(this.testObj.datetimeWindow, duration(0,0,50)); 
         end
         function test_dt(this)
             % get            
@@ -247,7 +259,7 @@ classdef Test_TimingData < matlab.unittest.TestCase
 		function setupTimingDataTest(this)
  			this.testObj = mldata.TimingData( ...
                 'times', 100:199, ...
-                'datetime0', this.datetime0);
+                'datetime0', this.datetimeMeas);
  			this.addTeardown(@this.cleanFiles);
  		end
 	end
@@ -263,7 +275,7 @@ classdef Test_TimingData < matlab.unittest.TestCase
         end
 		function cleanFiles(this)
  		end
-        function verifyCtorVariations(this, obj)            
+        function verifyCtorVariations(this, obj)
             this.verifyEqual(obj.taus, [1 1 2 4 4]);
             this.verifyEqual(obj.times, [0 1 2 4 8]);
             this.verifyEqual(obj.timesMid, [0.5 1.5 3 6 10]);

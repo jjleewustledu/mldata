@@ -22,7 +22,7 @@ classdef (Abstract) ITimingData
         dt            % for timeInterpolants; <= min(taus)/2  
         
         %datetimeF        % datetime of this.timeF
-        %datetimeDuration % datetimeF - datetime0
+        %datetimeWindow % datetimeF - datetime0
  	end
 
     methods (Abstract)
