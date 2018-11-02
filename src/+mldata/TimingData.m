@@ -57,52 +57,20 @@ classdef TimingData < handle
     end
     
     methods (Static)
-        function tf = isnice(obj)
-            if (islogical(obj))
-                tf = obj;
-                return
-            end
-            if (isduration(obj)); obj = seconds(obj); end
-            if (isdatetime(obj)); obj = seconds(obj - obj(1)); end
-            tf = all(isnumeric(obj)) && all(~isempty(obj)) && all(~isnan(obj)) && all(isfinite(obj));
+        function tf = isnice(obj) 
+            tf = mlkinetics.Timing.isnice(obj);
         end
         function tf = isniceDur(obj)
-            if (islogical(obj))
-                tf = obj;
-                return
-            end
-            if (isdatetime(obj))
-                tf = false;
-                return
-            end
-            if (isduration(obj)); obj = seconds(obj); end
-            tf = all(isnumeric(obj)) && all(~isempty(obj)) && all(~isnan(obj)) && all(isfinite(obj));
+            tf = mlkinetics.Timing.isniceDur(obj);
         end
         function tf = isniceDat(obj)
-            if (islogical(obj))
-                tf = obj;
-                return
-            end
-            if (isduration(obj))
-                tf = false; 
-                return
-            end
-            if (isdatetime(obj)); obj = seconds(obj - obj(1)); end
-            tf = all(isnumeric(obj)) && all(~isempty(obj)) && all(~isnan(obj)) && all(isfinite(obj));
+            tf = mlkinetics.Timing.isniceDat(obj);
         end
         function tf = isniceScalNum(s)
-            if (islogical(s))
-                tf = obj;
-                return
-            end
-            tf = isscalar(s) && ...
-                isnumeric(s) && ~isempty(s) && ~isnan(s) && isfinite(s);
+            tf = mlkinetics.Timing.isniceScalNum(s);
         end
         function s = seconds2num(s)
-            %% SECONDS2NUM preserves milliseconds
-            
-            assert(isduration(s));
-            s = milliseconds(s) / 1e3;
+            s = mlkinetics.Timing.seconds2num(s);
         end
     end
     

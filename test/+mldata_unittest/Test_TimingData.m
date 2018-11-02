@@ -17,6 +17,10 @@ classdef Test_TimingData < matlab.unittest.TestCase
     end
     
 	methods (Test)
+        function test_seconds2num(this)
+            % retains subseconds
+            this.assertEqual(this.testObj.seconds2num(seconds(1.123)), 1.123);
+        end
         function test_ctor_taus(this)
  			obj = mldata.TimingData( ...
                 'taus', [1 1 2 4 4], ...
