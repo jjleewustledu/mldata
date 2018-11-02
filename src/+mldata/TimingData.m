@@ -103,50 +103,27 @@ classdef TimingData < handle
         end
         function g    = get.time0(this)
             g = this.timing_.time0;
-            return
-            
-            if (~isempty(this.time0_))
-                g = this.time0_;
-                return
-            end            
-            g = this.times(1);
-            this.time0_ = g;
         end
         function        set.time0(this, s)
             this.timing_.time0 = s;
-            return
-            
-            assert(this.isniceScalNum(s));
-            assert(s >= this.times(1));
-            this.time0_ = s;
         end
         function g    = get.timeF(this)
-            if (~isempty(this.timeF_))
-                g = this.timeF_;
-                return
-            end            
-            g = this.times(end);
-            this.timeF_ = g;
+            g = this.timing_.timeF;
         end
         function        set.timeF(this, s)
-            assert(this.isniceScalNum(s));
-            assert(s <= this.times(end));
-            this.timeF_ = s;
+            this.timing_.timeF = s;
         end
         function g    = get.timeDuration(this)
-            g = this.timeF - this.time0;
+            g = this.timing_.timeWindow;
         end
         function        set.timeDuration(this, s)
-            assert(this.isniceDur(s));
-            assert(isscalar(s));
-            if (isduration(s)); s = this.timing2num(s); end
-            this.timeF = this.time0 + s;
+            this.timing_.timeWindow = s;
         end
         function g    = get.timeInterpolants(this)
             %% GET.TIMEINTERPOLANTS are uniformly separated by this.dt
             %  @returns interpolants this.times(1):this.dt:this.times(end)
             
-            g = this.times(1):this.dt:this.times(end);
+            g = this.timing_.timeInterpolants;
         end
         function g    = get.timesMid(this)
             if (~isempty(this.timesMid_))
@@ -170,60 +147,33 @@ classdef TimingData < handle
         end
         function g    = get.index0(this)
             g = this.timing_.index0;
-            return
-            
-            [~,g] = max(this.times >= this.time0);
         end
         function        set.index0(this, s)
             this.timing_.index0 = s;
-            return
-            
-            assert(this.isniceScalNum(s));
-            this.time0 = this.times(s);
         end
         function g    = get.indexF(this)
-            [~,g] = max(this.times >= this.timeF);
+            g = this.timing_.indexF;
         end
         function        set.indexF(this, s)
-            assert(this.isniceScalNum(s));
-            this.timeF = this.times(s);
+            this.timing_.indexF = s;
         end
         function g    = get.datetime0(this)
             g = this.timing_.datetime0;
-            return
-            
-            g = this.timing_.datetime0 + seconds(this.time0 - this.times(1));
         end
         function        set.datetime0(this, s)
             this.timing_.datetime0 = s;
-            return
-            
-            assert(this.isnice(s));
-            assert(isdatetime(s));
-            assert(isscalar(s));
-            if (isempty(s.TimeZone))
-                s.TimeZone = this.PREFERRED_TIMEZONE;
-            end
-            assert(s >= this.timing_.datetimeMeasured);
-            this.timing_.datetime0 = s;
         end
         function g    = get.datetimeF(this)
-            g = this.datetime0 + seconds(this.timeF - this.time0);
+            g = this.timing_.datetimeF;
         end
         function        set.datetimeF(this, s)
-            assert(this.isnice(s));
-            assert(isdatetime(s));
-            assert(isscalar(s));
-            this.timeF = this.timing2num(s - this.datetime0) + this.time0;
+            this.timing_.datetimeF = s;
         end
         function g    = get.datetimeWindow(this)
-            g = this.datetimeF - this.datetime0;
+            g = this.timing_.datetimeWindow;
         end
         function        set.datetimeWindow(this, s)
-            assert(this.isnice(s));
-            assert(isduration(s));
-            assert(isscalar(s));
-            this.timeF = this.timing2num(s) + this.time0;
+            this.timing_.datetimeWindow = s;
         end
         function g    = get.dt(this)
             g = this.timing_.dt;
@@ -238,8 +188,7 @@ classdef TimingData < handle
             dt_ = this.datetime0 + seconds(this.times(this.index0:this.indexF) - this.time0); 
         end
         function dur_     = duration(this)
-            dat_ = datetime(this);
-            dur_ = dat_ - dat_(1);
+            dur_ = duration(this.timing_);
         end
         function this     = shiftTimes(this, Dt_)
             this.times = this.times + Dt_;
@@ -283,11 +232,6 @@ classdef TimingData < handle
                 'time0', ip.Results.time0, ...
                 'timeF', ip.Results.timeF, ...
                 'dt', ip.Results.dt);
-            
-            assert(length(this.taus) == length(this.times));            
-            assert(length(this.times) == length(this.timesMid));
-            %this.time0_ = max(ip.Results.time0, this.times(1));
-            this.timeF_ = min(ip.Results.timeF, this.times(end));
         end 
     end 
     
@@ -295,16 +239,10 @@ classdef TimingData < handle
     
     properties (Access = protected)
         taus_
-        timeInterpolants_
         timesMid_
         timeMidInterpolants_
         
-        %time0_
-        timeF_
-        dt_        
-        
         timing_
-        datetime0_
     end
 
     methods (Access = protected)        
