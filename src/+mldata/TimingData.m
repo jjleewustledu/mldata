@@ -1,6 +1,6 @@
 classdef TimingData < handle 
 	%% TIMINGDATA assembles data objects using taus whenever possible, otherwise it uses times.  time{0,F,Duration}
-    %  may be arbitrarily assigned.  timesMid, timeMid{0,F,Duration} may be arbitrarily assigned.  Interpolants use dt,  
+    %  may be arbitrarily assigned.  Interpolants use dt,  
     %  which is assignable.  index{0,F} and datetime{0,F} may be arbitrarily assigned.  Caches used whenever possible
     %  for performance.
 
@@ -32,29 +32,22 @@ classdef TimingData < handle
         PREFERRED_TIMEZONE = 'America/Chicago'
     end
     
-    properties         
-        timeMid0         % frame middle after time0
-        timeMidF         % frame middle after timeF
-        timeMidDuration  % timeMidF - timeMid0
-    end
-    
 	properties (Dependent) 
         taus             % frame durations,    length() == length(times)
         times            % frame starts; times(1) need not be 0
         time0            % selects time window; >= this.time(1)                
         timeF            % selects time window; <= this.times(end)
-        timeDuration     % timeF - time0  
-        timeInterpolants        
-        timesMid         % frame middle times, length() == length(times)
-        timeMidInterpolants
+        timeWindow     % timeF - time0  
+        timeInterpolants
         
         indices
         index0           % index() >= index(time0)
         indexF           % index() >= index(timeF)  
         datetime0        % datetime of this.time0
-        datetimeF        % datetime of this.timeF
-        dt               % for timeInterpolants; seconds        
+        datetimeF        % datetime of this.timeF    
         datetimeWindow % datetimeF - datetime0
+        datetimeMeasured
+        dt               % for timeInterpolants; seconds    
     end
     
     methods (Static)
@@ -113,10 +106,10 @@ classdef TimingData < handle
         function        set.timeF(this, s)
             this.timing_.timeF = s;
         end
-        function g    = get.timeDuration(this)
+        function g    = get.timeWindow(this)
             g = this.timing_.timeWindow;
         end
-        function        set.timeDuration(this, s)
+        function        set.timeWindow(this, s)
             this.timing_.timeWindow = s;
         end
         function g    = get.timeInterpolants(this)
@@ -124,26 +117,6 @@ classdef TimingData < handle
             %  @returns interpolants this.times(1):this.dt:this.times(end)
             
             g = this.timing_.timeInterpolants;
-        end
-        function g    = get.timesMid(this)
-            if (~isempty(this.timesMid_))
-                g = this.timesMid_;
-                return
-            end
-            g = this.taus/2 + this.times;
-            this.timesMid_ = g;
-        end  
-        function        set.timesMid(this, s)
-            assert(this.isniceDat(s));
-            s = ensureRowVector(s);
-            if (isdatetime(s)); s = this.timing2num(s - s(1)); end
-            this.timesMid_ = s;
-        end
-        function g    = get.timeMidInterpolants(this)
-            %% GET.TIMEMIDINTERPOLANTS are uniformly separated by this.dt
-            %  @returns interpolants this.timesMid(1):this.dt:this.timesMid(end)
-            
-            g = this.times(1)+this.taus(1)/2:this.dt:this.times(end)+this.taus(end)/2;
         end
         function g    = get.index0(this)
             g = this.timing_.index0;
@@ -175,6 +148,12 @@ classdef TimingData < handle
         function        set.datetimeWindow(this, s)
             this.timing_.datetimeWindow = s;
         end
+        function g    = get.datetimeMeasured(this)
+            g = this.timing_.datetimeMeasured;
+        end
+        function        set.datetimeMeasured(this, s)
+            this.timing_.datetimeMeasured = s;
+        end
         function g    = get.dt(this)
             g = this.timing_.dt;
         end
@@ -190,6 +169,9 @@ classdef TimingData < handle
         function dur_     = duration(this)
             dur_ = duration(this.timing_);
         end
+        function            resetTimeLimits(this)
+            this.timing_.resetTimeLimits;
+        end
         function this     = shiftTimes(this, Dt_)
             this.times = this.times + Dt_;
         end
@@ -201,7 +183,6 @@ classdef TimingData < handle
  			%% TIMINGDATA
  			%  @param named taus  are frame durations.
  			%  @param named times are frame starts.
- 			%  @param named timesMid are times at the middle of frames or arbitrarily assigned.
  			%  @param named time0 >= this.times(1).
  			%  @param named timeF <= this.times(end).
             %  @param named datetime0 is the measured datetime.
@@ -210,24 +191,19 @@ classdef TimingData < handle
  			ip = inputParser;
             ip.KeepUnmatched = true;
             addParameter(ip, 'taus', [], @this.isniceDur);
-            addParameter(ip, 'times', [], @this.isniceDat);
-            addParameter(ip, 'timesMid', [], @this.isniceDat);
+            addParameter(ip, 'times', 0, @this.isniceDat);
             addParameter(ip, 'time0', -inf, @isnumeric); % time0 > times(1) drops early times
             addParameter(ip, 'timeF', inf, @isnumeric);  % timeF < times(end) drops late times
-            addParameter(ip, 'datetime0', NaT, @isdatetime);
+            addParameter(ip, 'datetimeMeasured', NaT, @isdatetime);
             addParameter(ip, 'dt', 0, @isnumeric);
             parse(ip, varargin{:});
             this.taus_ = ensureRowVector(ip.Results.taus); 
-            this.timesMid_ = ensureRowVector(ip.Results.timesMid);         
             if (isduration(this.taus_))
                 this.taus_ = this.seconds2num(this.taus_); 
             end
-            if (isdatetime(this.timesMid_))
-                this.timesMid_ = this.seconds2num(this.timesMid_ - this.timesMid_(1)); 
-            end 
             
             this.timing_ = mlkinetics.Timing( ...
-                'datetimeMeasured', ip.Results.datetime0, ...
+                'datetimeMeasured', ip.Results.datetimeMeasured, ...
                 'times', ip.Results.times, ...
                 'time0', ip.Results.time0, ...
                 'timeF', ip.Results.timeF, ...
@@ -238,10 +214,7 @@ classdef TimingData < handle
     %% PROTECTED
     
     properties (Access = protected)
-        taus_
-        timesMid_
-        timeMidInterpolants_
-        
+        taus_        
         timing_
     end
 
