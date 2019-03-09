@@ -14,7 +14,7 @@ classdef TimingData < handle
     %     assert(isdatetime(s));
     %     assert(isscalar(s));
     %     if (isempty(s.TimeZone))
-    %         s.TimeZone = this.PREFERRED_TIMEZONE;
+    %         s.TimeZone = mlnipet.Resources.PREFERRED_TIMEZONE;
     %     end
     %     assert(s >= this.datetimeMeasured_);
     %     this.datetimeMeasured_ = s;
@@ -29,7 +29,6 @@ classdef TimingData < handle
 
     properties (Constant)
         DEFAULT_DT = 1
-        PREFERRED_TIMEZONE = 'America/Chicago'
     end
     
 	properties (Dependent) 
