@@ -3,22 +3,6 @@ classdef TimingData < handle
     %  may be arbitrarily assigned.  Interpolants use dt,  
     %  which is assignable.  index{0,F} and datetime{0,F} may be arbitrarily assigned.  Caches used whenever possible
     %  for performance.
-
-    %% POSSIBLE BUG    
-    %  function dt_ = datetime(this)
-    %      dt_ = this.datetime0 + seconds(this.times(this.index0:this.indexF) - this.time0); 
-    %  end
-    %
-    % function set.datetime0(this, s)
-    %     assert(this.isnice(s));
-    %     assert(isdatetime(s));
-    %     assert(isscalar(s));
-    %     if (isempty(s.TimeZone))
-    %         s.TimeZone = mlnipet.Resources.PREFERRED_TIMEZONE;
-    %     end
-    %     assert(s >= this.datetimeMeasured_);
-    %     this.datetimeMeasured_ = s;
-    % end
     
 	%  $Revision$
  	%  was created 30-Jan-2017 00:16:18
