@@ -8,10 +8,22 @@ classdef (Abstract) Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
  	
 	properties (Constant) 		
         EXCEL_INITIAL_DATETIME = datetime(1899,12,31)
-        PREFERRED_TIMEZONE = mlkinetics.Timing.PREFERRED_TIMEZONE
         SERIAL_DAYS_1900_TO_1904 = 1462	        
         % https://support.microsoft.com/en-us/help/214330/differences-between-the-1900-and-the-1904-date-system-in-excel
- 	end
+    end
+    
+    properties (Dependent)
+        preferredTimeZone
+    end
+    
+    methods
+        
+        %% GET
+        
+        function g = get.preferredTimeZone(~)
+            g = mlpipeline.ResourceRegistry.instance().preferredTimeZone;
+        end
+    end
 
     %% PROTECTED
     
@@ -48,7 +60,7 @@ classdef (Abstract) Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
                         col(lrows) = dt_;
                     end
                     if (any(isdatetime(col)))
-                        col.TimeZone = this.PREFERRED_TIMEZONE;
+                        col.TimeZone = this.preferredTimeZone;
                     end
                 end
                 tbl.(vars{v}) = col;
@@ -57,7 +69,7 @@ classdef (Abstract) Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
         function dati = datetimeConvertFromExcel(this, days)
             assert(isnumeric(days));
             dati = datetime(days + this.SERIAL_DAYS_1900_TO_1904, 'ConvertFrom', 'excel');
-            dati.TimeZone = this.PREFERRED_TIMEZONE;
+            dati.TimeZone = this.preferredTimeZone;
         end
         function dati = datetimeConvertFromExcel2(this, days)
             %% DATETIMECONVERTFROMEXCEL2
@@ -65,7 +77,7 @@ classdef (Abstract) Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
             
             assert(isnumeric(days));
             dati = datetime(days, 'ConvertFrom', 'excel') + 2*this.SERIAL_DAYS_1900_TO_1904;
-            dati.TimeZone = this.PREFERRED_TIMEZONE;
+            dati.TimeZone = this.preferredTimeZone;
         end
         function tf   = equivDates(~, dt1, dt2)
             d1 = datetime(dt1.Year, dt1.Month, dt1.Day);
@@ -76,9 +88,9 @@ classdef (Abstract) Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
             import mlkinetics.*;
             pm            = sign(excelnum);
             dt_           = datetime(abs(excelnum), 'ConvertFrom', 'excel');
-            dt_.TimeZone  = this.PREFERRED_TIMEZONE;
+            dt_.TimeZone  = this.preferredTimeZone;
             dt__          = datetime(dt_.Year, dt_.Month, dt_.Day);
-            dt__.TimeZone = this.PREFERRED_TIMEZONE;
+            dt__.TimeZone = this.preferredTimeZone;
             s             = pm*seconds(dt_ - dt__);
         end
         
