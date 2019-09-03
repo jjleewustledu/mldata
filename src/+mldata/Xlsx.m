@@ -1,4 +1,4 @@
-classdef (Abstract) Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
+classdef Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
 	%% XLSX  
 
 	%  $Revision$
@@ -21,13 +21,11 @@ classdef (Abstract) Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
         %% GET
         
         function g = get.preferredTimeZone(~)
-            g = mlpipeline.ResourceRegistry.instance().preferredTimeZone;
+            g = mlpipeline.ResourcesRegistry.instance().preferredTimeZone;
         end
-    end
-
-    %% PROTECTED
-    
-	methods (Access = protected)	
+        
+        %%
+        
         function        addgetprop(this, varargin)
             ip = inputParser;
             addRequired(ip, 'prop', @ischar);

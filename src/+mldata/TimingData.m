@@ -168,7 +168,7 @@ classdef TimingData < handle
  			%  @param named times are frame starts.
  			%  @param named time0 >= this.times(1).
  			%  @param named timeF <= this.times(end).
-            %  @param named datetime0 is the measured datetime.
+            %  @param named datetimeMeasured is the measured datetime for times(1).
             %  @param named dt is numeric and must satisfy Nyquist requirements of the client.
 
  			ip = inputParser;
@@ -180,17 +180,18 @@ classdef TimingData < handle
             addParameter(ip, 'datetimeMeasured', NaT, @isdatetime);
             addParameter(ip, 'dt', 0, @isnumeric);
             parse(ip, varargin{:});
-            this.taus_ = ensureRowVector(ip.Results.taus); 
+            ipr = ip.Results;
+            
+            this.taus_ = ensureRowVector(ipr.taus); 
             if (isduration(this.taus_))
                 this.taus_ = this.seconds2num(this.taus_); 
-            end
-            
+            end      
             this.timing_ = mlkinetics.Timing( ...
-                'datetimeMeasured', ip.Results.datetimeMeasured, ...
-                'times', ip.Results.times, ...
-                'time0', ip.Results.time0, ...
-                'timeF', ip.Results.timeF, ...
-                'dt', ip.Results.dt);
+                'datetimeMeasured', ipr.datetimeMeasured, ...
+                'times', ipr.times, ...
+                'time0', ipr.time0, ...
+                'timeF', ipr.timeF, ...
+                'dt', ipr.dt);
         end 
     end 
     

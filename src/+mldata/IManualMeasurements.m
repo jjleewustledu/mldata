@@ -1,4 +1,4 @@
-classdef IManualMeasurements 
+classdef (Abstract) IManualMeasurements 
 	%% IMANUALMEASUREMENTS  
 
 	%  $Revision$
