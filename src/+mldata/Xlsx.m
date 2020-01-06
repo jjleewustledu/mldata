@@ -52,7 +52,7 @@ classdef Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
                 if (this.hasTimings(vars{v}))
                     if (any(isnumeric(col)))                        
                         lrows = logical(~isnan(col) & ~isempty(col));
-                        dt_   = this.datetimeConvertFromExcel2(tbl{lrows,v});
+                        dt_   = this.datetimeConvertFromExcel(tbl{lrows,v});
                         col   = NaT(size(col));
                         col.TimeZone = dt_.TimeZone;
                         col(lrows) = dt_;
@@ -65,8 +65,10 @@ classdef Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
             end
         end
         function dati = datetimeConvertFromExcel(this, days)
+            %% DATETIMECONVERTFROMEXCEL
+            
             assert(isnumeric(days));
-            dati = datetime(days + this.SERIAL_DAYS_1900_TO_1904, 'ConvertFrom', 'excel');
+            dati = datetime(days, 'ConvertFrom', 'excel');
             dati.TimeZone = this.preferredTimeZone;
         end
         function dati = datetimeConvertFromExcel2(this, days)
