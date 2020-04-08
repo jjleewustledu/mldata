@@ -1,4 +1,4 @@
-classdef Timing < handle & mldata.ITiming
+classdef Timing < handle & matlab.mixin.Copyable & mldata.ITiming
 	%% TIMING uses numeric types to represent time internally with msec resolution.  
     %  All datetime properties/methods refer to datetimeMeasured and the internal representations.
 

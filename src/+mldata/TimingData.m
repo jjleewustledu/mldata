@@ -1,4 +1,4 @@
-classdef TimingData < handle & mldata.ITiming
+classdef TimingData < handle & matlab.mixin.Copyable & mldata.ITiming
 	%% TIMINGDATA supports nonuniformly sampled dynamic data.  
     %  It assembles data objects using taus whenever possible, otherwise using times.  
     %  It delegates to mldata.Timing
@@ -220,7 +220,13 @@ classdef TimingData < handle & mldata.ITiming
         timing_
     end
 
-    methods (Access = protected)        
+    methods (Access = protected)    
+        function that = copyElement(this)
+            %%  See also web(fullfile(docroot, 'matlab/ref/matlab.mixin.copyable-class.html'))
+            
+            that = copyElement@matlab.mixin.Copyable(this);
+            that.timing_ = copy(this.timing_);
+        end    
         function s = seconds2num(~, s)
             %% SECONDS2NUM preserves milliseconds
             
