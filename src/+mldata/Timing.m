@@ -157,12 +157,16 @@ classdef Timing < handle & matlab.mixin.Copyable & mldata.ITiming
             g = mlpipeline.ResourcesRegistry.instance().preferredTimeZone;
         end
         function g = get.time0(this)
-            if (isfinite(this.time0_))
+            if isfinite(this.time0_)
                 g = this.time0_;
                 return
             end
-            g = this.times(1);
-            this.time0_ = g;
+            if ~isempty(this.times)
+                this.time0_ = this.times(1);
+                g = this.time0_;
+                return
+            end
+            g = this.time0_;
         end
         function     set.time0(this, s)
             assert(isscalar(s));
@@ -180,9 +184,13 @@ classdef Timing < handle & matlab.mixin.Copyable & mldata.ITiming
             if (isfinite(this.timeF_))
                 g = this.timeF_;
                 return
-            end            
-            g = this.times(end);
-            this.timeF_ = g;
+            end  
+            if ~isempty(this.times)
+                this.timeF_ = this.times(end);
+                g = this.timeF_;
+                return
+            end
+            g = this.timeF_;
         end
         function     set.timeF(this, s)
             assert(isscalar(s));
