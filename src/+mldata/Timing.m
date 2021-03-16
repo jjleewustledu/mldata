@@ -196,7 +196,8 @@ classdef Timing < handle & matlab.mixin.Copyable & mldata.ITiming
             assert(isscalar(s));
             assert(s >= this.times(1), ...
                 'mldata:ValueError', 'Timing.set.timeF received request for timeF < times(1)')
-            if (s > this.times(end)) % trap inf
+            if (s > this.times(end))
+                % trap inf
                 warning('mldata:ValueWarning', 'Timing.set.timeF received request for timeF > times(end)');
                 this.timeF_ = this.times(end);
                 return
