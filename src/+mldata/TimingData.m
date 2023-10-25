@@ -201,7 +201,7 @@ classdef TimingData < handle & matlab.mixin.Copyable & mldata.ITiming
             if (isduration(this.taus_))
                 this.taus_ = this.seconds2num(this.taus_); 
             end
-            if ~isempty(ipr.taus)
+            if isempty(ipr.times) && ~isempty(ipr.taus)
                 ipr.times = cumsum([0 ipr.taus(1:end-1)]);
             end
             this.timing_ = mldata.Timing( ...

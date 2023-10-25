@@ -1,4 +1,4 @@
-classdef Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
+classdef Xlsx < handle & matlab.mixin.Heterogeneous & matlab.mixin.Copyable & mlio.AbstractHandleIO
 	%% XLSX  
 
 	%  $Revision$
@@ -26,25 +26,6 @@ classdef Xlsx < handle & dynamicprops & mlio.AbstractHandleIO
         
         %%
         
-        function        addgetprop(this, varargin)
-            ip = inputParser;
-            addRequired(ip, 'prop', @ischar);
-            addOptional(ip, 'init_val', []);
-            parse(ip, varargin{:});
-            
-            p = addprop(this, ip.Results.prop);
-            this.(ip.Results.prop) = ip.Results.init_val;
-            p.GetMethod = @getter;
-            p.SetMethod = @setter;
-            
-            function g = getter(this)
-                g = this.(ip.Results.prop);
-            end
-            function     setter(this, s)
-                this.(ip.Results.prop) = s;
-                %throwAsCaller(MException('mldata:AttributeError', 'Xlsx.addgetprop only permits getting dyn props'));
-            end
-        end
         function tbl  = correctDates2(this, tbl, varargin)
             vars = tbl.Properties.VariableNames;
             for v = 1:length(vars)
